@@ -5,7 +5,7 @@ import { quoteData } from '@/data/data';
 import { calculate_implied_volatility_baw } from '@/models/models';
 import React from 'react';
 import { ChartComponent } from '@/components/ChartComponent';
-import { Checkbox, FormControlLabel, Box, Button, TextField } from '@mui/material';
+import { Checkbox, FormControlLabel, Box, TextField } from '@mui/material';
 
 const S = 566.345;
 const T = 0.015708354371353372;
@@ -30,31 +30,32 @@ export default function InteractiblePlot() {
     const [bidData, setBidData] = useState<number[]>([]);
     const [midData, setMidData] = useState<number[]>([]);
     const [askData, setAskData] = useState<number[]>([]);
-    const [showBid, setShowBid] = useState(false);
-    const [showAsk, setShowAsk] = useState(false);
     const [bidChecked, setBidChecked] = useState(false);
     const [askChecked, setAskChecked] = useState(false);
     const [pennyChecked, setPennyChecked] = useState(false);
-    const [numStdev, setNumStdev] = useState<number>(1.25);
     const [inputValue, setInputValue] = useState<string>('1.25');
 
-    const handleEnter = () => {
-        const input = inputValue.trim();
-        const isValidFloat = /^-?\d+(\.\d+)?$/.test(input);
+    useEffect(() => {
+        function parseStandardDeviation(inputValue: string): number {
+            let input = inputValue.trim();
 
-        if (!isValidFloat) {
-            alert("Please enter a valid number for the standard deviation.");
-            return;
+            if (input === '') {
+                input = '0.0';
+            }
+
+            const isValidFloat = /^-?(0|[1-9]\d*)(\.\d*)?$/.test(input);
+
+            if (!isValidFloat) {
+                alert("Please enter a valid number for the standard deviation.");
+                setInputValue('1.25');
+                return 1.25;
+            }
+
+            return parseFloat(input);
         }
 
-        const stdevValue = parseFloat(input);
+        const stdevValue = parseStandardDeviation(inputValue);
 
-        setNumStdev(stdevValue);
-        setShowBid(bidChecked);
-        setShowAsk(askChecked);
-    };
-
-    useEffect(() => {
         const chartData = Object.entries(quoteData).map(([key, value]) => {
             const K = parseFloat(key);
             const bid_price = value[0];
@@ -74,13 +75,21 @@ export default function InteractiblePlot() {
             };
         });
 
-        const filteredChartData = filterChartData(chartData, S, numStdev);
+        const filteredChartData = stdevValue === 0.0 ? chartData : filterChartData(chartData, S, stdevValue);
 
         setXData(filteredChartData.map((data) => data.strike));
-        setBidData(filteredChartData.map((data) => data.bid_iv));
+        if (bidChecked) {
+            setBidData(filteredChartData.map((data) => data.bid_iv));
+        } else {
+            setBidData([]);
+        }
         setMidData(filteredChartData.map((data) => data.mid_iv));
-        setAskData(filteredChartData.map((data) => data.ask_iv));
-    }, [showBid, showAsk, numStdev]);
+        if (askChecked) {
+            setAskData(filteredChartData.map((data) => data.ask_iv));
+        } else {
+            setAskData([]);
+        }
+    }, [bidChecked, askChecked, inputValue]);
 
     return (
         <div style={{ width: '100%' }}>
@@ -90,8 +99,8 @@ export default function InteractiblePlot() {
                     bidData={bidData}
                     midData={midData}
                     askData={askData}
-                    showBid={showBid}
-                    showAsk={showAsk}
+                    showBid={bidChecked}
+                    showAsk={askChecked}
                 />
             </Box>
             <Box display="flex" justifyContent="center" mb={2}>
@@ -158,21 +167,6 @@ export default function InteractiblePlot() {
                     label="Ask"
                     sx={{ color: 'white' }}
                 />
-                <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleEnter}
-                    sx={{
-                        color: 'white',
-                        borderColor: 'white',
-                        '&:hover': {
-                            borderColor: 'white',
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        }
-                    }}
-                >
-                    Enter
-                </Button>
             </Box>
         </div>
     );
