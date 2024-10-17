@@ -32,7 +32,7 @@ export default function InteractiblePlot() {
     const [askData, setAskData] = useState<number[]>([]);
     const [bidChecked, setBidChecked] = useState(false);
     const [askChecked, setAskChecked] = useState(false);
-    const [pennyChecked, setPennyChecked] = useState(false);
+    const [pennyChecked, setPennyChecked] = useState(true);
     const [inputValue, setInputValue] = useState<string>('1.25');
 
     useEffect(() => {
@@ -56,24 +56,26 @@ export default function InteractiblePlot() {
 
         const stdevValue = parseStandardDeviation(inputValue);
 
-        const chartData = Object.entries(quoteData).map(([key, value]) => {
-            const K = parseFloat(key);
-            const bid_price = value[0];
-            const ask_price = value[1];
-            const mid_price = value[2];
-            const option_type = 'calls';
+        let chartData = Object.entries(quoteData)
+            .filter(([_, value]) => !(pennyChecked && value[0] === 0.0))
+            .map(([key, value]) => {
+                const K = parseFloat(key);
+                const bid_price = value[0];
+                const ask_price = value[1];
+                const mid_price = value[2];
+                const option_type = 'calls';
 
-            const bid_iv = calculate_implied_volatility_baw(bid_price, S, K, r, T, q, option_type);
-            const mid_iv = calculate_implied_volatility_baw(mid_price, S, K, r, T, q, option_type);
-            const ask_iv = calculate_implied_volatility_baw(ask_price, S, K, r, T, q, option_type);
+                const bid_iv = calculate_implied_volatility_baw(bid_price, S, K, r, T, q, option_type);
+                const mid_iv = calculate_implied_volatility_baw(mid_price, S, K, r, T, q, option_type);
+                const ask_iv = calculate_implied_volatility_baw(ask_price, S, K, r, T, q, option_type);
 
-            return {
-                strike: K,
-                bid_iv,
-                mid_iv,
-                ask_iv,
-            };
-        });
+                return {
+                    strike: K,
+                    bid_iv,
+                    mid_iv,
+                    ask_iv,
+                };
+            });
 
         const filteredChartData = stdevValue === 0.0 ? chartData : filterChartData(chartData, S, stdevValue);
 
@@ -89,7 +91,7 @@ export default function InteractiblePlot() {
         } else {
             setAskData([]);
         }
-    }, [bidChecked, askChecked, inputValue]);
+    }, [pennyChecked, bidChecked, askChecked, inputValue]);
 
     return (
         <div style={{ width: '100%' }}>
