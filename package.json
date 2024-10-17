@@ -10,14 +10,17 @@
   },
   "dependencies": {
     "next": "14.2.1",
+    "plotly.js": "^2.35.2",
     "react": "^18",
     "react-dom": "^18",
+    "react-plotly.js": "^2.6.0",
     "recharts": "^2.13.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-plotly.js": "^2.6.3",
     "autoprefixer": "^10.4.19",
     "eslint": "^8",
     "eslint-config-next": "14.2.1",
