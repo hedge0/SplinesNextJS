@@ -5,39 +5,78 @@ import React from 'react';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
-export function ChartComponent({ xData, bidData, midData, askData, showBid, showAsk }: any) {
+export function ChartComponent({ xData, bidData, midData, askData, fineX, interpolatedY, showBid, showAsk }: any) {
     const plotData: Partial<Plotly.Data>[] = [
         {
             x: xData,
             y: midData,
             mode: 'markers',
-            marker: { color: '#8884d8' },
+            marker: { color: '#8884d8', size: 8 },
             name: 'Mid IV',
             type: 'scatter',
         },
     ];
 
     if (showBid) {
-        plotData.push({
-            x: xData,
-            y: bidData,
-            mode: 'markers',
-            marker: { color: '#3CB371' },
-            name: 'Bid IV',
-            type: 'scatter',
+        plotData.push(
+            {
+                x: xData,
+                y: bidData,
+                mode: 'markers',
+                marker: { color: '#8884d8', size: 6 },
+                name: 'Bid IV',
+                type: 'scatter',
+            }
+        );
+
+        xData.forEach((x: any, idx: number) => {
+            plotData.push({
+                x: [x, x],
+                y: [bidData[idx], midData[idx]],
+                mode: 'lines',
+                line: { color: '#8884d8' },
+                name: 'Bid-Mid Line',
+                type: 'scatter',
+                showlegend: false,
+            });
         });
     }
 
     if (showAsk) {
-        plotData.push({
-            x: xData,
-            y: askData,
-            mode: 'markers',
-            marker: { color: '#FF6347' },
-            name: 'Ask IV',
-            type: 'scatter',
+        plotData.push(
+            {
+                x: xData,
+                y: askData,
+                mode: 'markers',
+                marker: { color: '#8884d8', size: 6 },
+                name: 'Ask IV',
+                type: 'scatter',
+            }
+        );
+
+        xData.forEach((x: any, idx: number) => {
+            plotData.push({
+                x: [x, x],
+                y: [askData[idx], midData[idx]],
+                mode: 'lines',
+                line: { color: '#8884d8' },
+                name: 'Ask-Mid Line',
+                type: 'scatter',
+                showlegend: false,
+            });
         });
     }
+
+    // Add the line plot using fineX and interpolatedY
+    plotData.push({
+        x: fineX,
+        y: interpolatedY,
+        mode: 'lines',
+        line: { color: '#FFD700', width: 2 },  // Line for interpolation
+        name: 'Interpolated Line',
+        type: 'scatter',
+        showlegend: true,
+    });
 
     return (
         <div className="bg-gray-700 rounded-lg shadow-lg p-8 w-full max-w-6xl">
@@ -73,6 +112,7 @@ export function ChartComponent({ xData, bidData, midData, askData, showBid, show
                         orientation: 'h',
                         bgcolor: 'transparent',
                     },
+                    showlegend: false,
                 }}
                 config={{
                     responsive: true,
