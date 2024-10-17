@@ -6,6 +6,7 @@ import { calculate_implied_volatility_baw } from '@/models/models';
 import React from 'react';
 import { ChartComponent } from '@/components/ChartComponent';
 import { Checkbox, FormControlLabel, Box, TextField } from '@mui/material';
+import { Interpolations } from '@/interpolations/interpolations';
 
 const S = 566.345;
 const T = 0.015708354371353372;
@@ -30,6 +31,8 @@ export default function InteractiblePlot() {
     const [bidData, setBidData] = useState<number[]>([]);
     const [midData, setMidData] = useState<number[]>([]);
     const [askData, setAskData] = useState<number[]>([]);
+    const [fineX, setFineX] = useState<number[]>([]);
+    const [interpolatedY, setInterpolatedY] = useState<number[]>([]);
     const [bidChecked, setBidChecked] = useState(false);
     const [askChecked, setAskChecked] = useState(false);
     const [pennyChecked, setPennyChecked] = useState(true);
@@ -79,15 +82,47 @@ export default function InteractiblePlot() {
 
         const filteredChartData = stdevValue === 0.0 ? chartData : filterChartData(chartData, S, stdevValue);
 
-        setXData(filteredChartData.map((data) => data.strike));
+        const x = filteredChartData.map((data) => data.strike);
+        const bid_iv = filteredChartData.map((data) => data.bid_iv);
+        const ask_iv = filteredChartData.map((data) => data.ask_iv);
+        const mid_iv = filteredChartData.map((data) => data.mid_iv);
+
+        const x_min = Math.min(...x);
+        const x_max = Math.max(...x);
+        const x_normalized = x.map(value => {
+            let normalizedValue = (value - x_min) / (x_max - x_min);
+            normalizedValue += 0.5;
+            return normalizedValue;
+        });
+
+        const params = Interpolations.fit_model(x_normalized, mid_iv, bid_iv, ask_iv);
+
+        const fine_x_min = Math.min(...x_normalized);
+        const fine_x_max = Math.max(...x_normalized);
+        const fine_x_normalized = Array.from({ length: 800 }, (_, i) =>
+            fine_x_min + (i * (fine_x_max - fine_x_min) / 799)
+        );
+
+        // Interpolate y values using the fitted model
+        const interpolated_y = Interpolations.rfv_model(fine_x_normalized.map(Math.log), params);
+        const fine_x = Array.from({ length: 800 }, (_, i) =>
+            x_min + (i * (x_max - x_min) / 799)
+        );
+
+        // Set data for the line plot
+        setFineX(fine_x);
+        setInterpolatedY(interpolated_y);
+
+        // Set data for individual points
+        setXData(x);
         if (bidChecked) {
-            setBidData(filteredChartData.map((data) => data.bid_iv));
+            setBidData(bid_iv);
         } else {
             setBidData([]);
         }
-        setMidData(filteredChartData.map((data) => data.mid_iv));
+        setMidData(mid_iv);
         if (askChecked) {
-            setAskData(filteredChartData.map((data) => data.ask_iv));
+            setAskData(ask_iv);
         } else {
             setAskData([]);
         }
@@ -101,6 +136,8 @@ export default function InteractiblePlot() {
                     bidData={bidData}
                     midData={midData}
                     askData={askData}
+                    fineX={fineX}
+                    interpolatedY={interpolatedY}
                     showBid={bidChecked}
                     showAsk={askChecked}
                 />
@@ -123,13 +160,13 @@ export default function InteractiblePlot() {
                             color: 'white',
                         },
                         '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
+                            borderColor: '#8884d8',
                         },
                         '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
+                            borderColor: '#8884d8',
                         },
                         '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
+                            borderColor: '#8884d8',
                         },
                         '& .MuiInputLabel-root.Mui-focused': {
                             color: 'white',
@@ -141,7 +178,7 @@ export default function InteractiblePlot() {
                         <Checkbox
                             checked={pennyChecked}
                             onChange={(e) => setPennyChecked(e.target.checked)}
-                            style={{ color: '#FFD700' }}
+                            style={{ color: '#8884d8' }}
                         />
                     }
                     label="Penny Filter"
@@ -152,7 +189,7 @@ export default function InteractiblePlot() {
                         <Checkbox
                             checked={bidChecked}
                             onChange={(e) => setBidChecked(e.target.checked)}
-                            style={{ color: '#3CB371' }}
+                            style={{ color: '#8884d8' }}
                         />
                     }
                     label="Bid"
@@ -163,7 +200,7 @@ export default function InteractiblePlot() {
                         <Checkbox
                             checked={askChecked}
                             onChange={(e) => setAskChecked(e.target.checked)}
-                            style={{ color: '#FF6347' }}
+                            style={{ color: '#8884d8' }}
                         />
                     }
                     label="Ask"
