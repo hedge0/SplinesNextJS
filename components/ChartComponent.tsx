@@ -12,8 +12,8 @@ export function ChartComponent({ xData, bidData, midData, askData, showBid, show
             y: midData,
             mode: 'markers',
             marker: { color: '#8884d8' },
-            name: 'Mid IV', // Name for mid price IV
-            type: 'scatter', // Explicitly define the type as 'scatter'
+            name: 'Mid IV',
+            type: 'scatter',
         },
     ];
 
@@ -22,9 +22,9 @@ export function ChartComponent({ xData, bidData, midData, askData, showBid, show
             x: xData,
             y: bidData,
             mode: 'markers',
-            marker: { color: '#3CB371' }, // Different color for bid IV
-            name: 'Bid IV', // Name for bid price IV
-            type: 'scatter', // Explicitly define the type as 'scatter'
+            marker: { color: '#3CB371' },
+            name: 'Bid IV',
+            type: 'scatter',
         });
     }
 
@@ -33,15 +33,14 @@ export function ChartComponent({ xData, bidData, midData, askData, showBid, show
             x: xData,
             y: askData,
             mode: 'markers',
-            marker: { color: '#FF6347' }, // Different color for ask IV
-            name: 'Ask IV', // Name for ask price IV
-            type: 'scatter', // Explicitly define the type as 'scatter'
+            marker: { color: '#FF6347' },
+            name: 'Ask IV',
+            type: 'scatter',
         });
     }
 
     return (
         <div className="bg-gray-700 rounded-lg shadow-lg p-8 w-full max-w-6xl">
-            <h2 className="text-2xl font-bold mb-4 text-white">Quote Data Chart</h2>
             <Plot
                 data={plotData}
                 layout={{
