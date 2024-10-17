@@ -1,8 +1,11 @@
 'use client'
 
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { quoteData } from '@/data/data'
-import { calculate_implied_volatility_baw } from '@/models/models'
+import dynamic from 'next/dynamic';
+import { quoteData } from '@/data/data';
+import { calculate_implied_volatility_baw } from '@/models/models';
+import React from 'react';
+
+const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
 const S = 566.345;
 const T = 0.015708354371353372;
@@ -23,37 +26,63 @@ const chartData = Object.entries(quoteData).map(([key, value]) => {
 });
 
 export function ChartComponent() {
+    const xData = chartData.map((data) => data.x);
+    const yData = chartData.map((data) => data.y);
+
     return (
-        <div className="bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-4xl">
+        <div className="bg-gray-700 rounded-lg shadow-lg p-8 w-full max-w-6xl">
             <h2 className="text-2xl font-bold mb-4 text-white">Quote Data Chart</h2>
-            <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-                        <XAxis
-                            type="number"
-                            dataKey="x"
-                            name="Key"
-                            stroke="#fff"
-                            domain={['dataMin', 'dataMax']}
-                        />
-                        <YAxis
-                            type="number"
-                            dataKey="y"
-                            name="Value"
-                            stroke="#fff"
-                            domain={['dataMin', 'dataMax']}
-                        />
-                        <Tooltip
-                            cursor={{ strokeDasharray: '3 3' }}
-                            contentStyle={{ backgroundColor: '#333', border: 'none' }}
-                            labelStyle={{ color: '#fff' }}
-                            itemStyle={{ color: '#fff' }}
-                        />
-                        <Scatter name="Quote Data" data={chartData} fill="#8884d8" />
-                    </ScatterChart>
-                </ResponsiveContainer>
-            </div>
+            <Plot
+                data={[
+                    {
+                        x: xData,
+                        y: yData,
+                        mode: 'markers',
+                        marker: { color: '#8884d8' },
+                        type: 'scatter',
+                    },
+                ]}
+                layout={{
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: 'Quote Data',
+                        font: { color: '#fff' },
+                    },
+                    xaxis: {
+                        title: 'Key (K)',
+                        color: '#fff',
+                        showgrid: true,
+                        gridcolor: '#555',
+                    },
+                    yaxis: {
+                        title: 'Implied Volatility',
+                        color: '#fff',
+                        showgrid: true,
+                        gridcolor: '#555',
+                    },
+                    margin: {
+                        t: 40,
+                        r: 20,
+                        b: 40,
+                        l: 40,
+                    },
+                    dragmode: 'pan',
+                    modebar: {
+                        orientation: 'h',
+                        bgcolor: 'transparent',
+                    },
+                }}
+                config={{
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+                    scrollZoom: true,
+                    modeBarButtonsToAdd: ['zoom2d', 'pan2d', 'resetScale2d'],
+                    displaylogo: false,
+                }}
+                style={{ width: '100%', height: '650px' }}
+            />
         </div>
-    )
+    );
 }
