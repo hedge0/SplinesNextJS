@@ -90,7 +90,8 @@ export function ChartComponent({ xData, bidData, midData, askData, fineX, interp
             line: { color: '#FFD700', width: 2 },
             name: 'Interpolated Line',
             type: 'scatter',
-            showlegend: true,
+            showlegend: false,
+            hoverinfo: 'skip',
         });
     }
 
