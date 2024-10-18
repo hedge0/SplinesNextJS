@@ -5,7 +5,7 @@ import { quoteData } from '@/data/data';
 import { calculate_implied_volatility_baw } from '@/models/models';
 import React from 'react';
 import { ChartComponent } from '@/components/ChartComponent';
-import { Checkbox, FormControlLabel, Box, TextField } from '@mui/material';
+import { Checkbox, FormControlLabel, Box, TextField, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import { Interpolations } from '@/interpolations/interpolations';
 
 const S = 566.345;
@@ -35,8 +35,9 @@ export default function InteractiblePlot() {
     const [interpolatedY, setInterpolatedY] = useState<number[]>([]);
     const [bidChecked, setBidChecked] = useState(false);
     const [askChecked, setAskChecked] = useState(false);
-    const [pennyChecked, setPennyChecked] = useState(true);
+    const [pennyChecked, setPennyChecked] = useState(false);
     const [inputValue, setInputValue] = useState<string>('1.25');
+    const [selectedModel, setSelectedModel] = useState<'RFV' | 'SLV' | 'SABR' | 'SVI'>('RFV');
 
     useEffect(() => {
         function parseStandardDeviation(inputValue: string): number {
@@ -95,7 +96,7 @@ export default function InteractiblePlot() {
             return normalizedValue;
         });
 
-        const params = Interpolations.fit_model(x_normalized, mid_iv, bid_iv, ask_iv);
+        const params = Interpolations.fit_model(x_normalized, mid_iv, bid_iv, ask_iv, selectedModel);
 
         const fine_x_min = Math.min(...x_normalized);
         const fine_x_max = Math.max(...x_normalized);
@@ -103,17 +104,25 @@ export default function InteractiblePlot() {
             fine_x_min + (i * (fine_x_max - fine_x_min) / 799)
         );
 
-        // Interpolate y values using the fitted model
-        const interpolated_y = Interpolations.rfv_model(fine_x_normalized.map(Math.log), params);
-        const fine_x = Array.from({ length: 800 }, (_, i) =>
-            x_min + (i * (x_max - x_min) / 799)
-        );
+        const modelFunction = {
+            'RFV': Interpolations.rfv_model,
+            'SLV': Interpolations.slv_model,
+            'SABR': Interpolations.sabr_model,
+            'SVI': Interpolations.svi_model,
+        }[selectedModel];
 
-        // Set data for the line plot
-        setFineX(fine_x);
-        setInterpolatedY(interpolated_y);
+        if (modelFunction) {
+            const interpolated_y = modelFunction(fine_x_normalized.map(Math.log), params);
+            const fine_x = Array.from({ length: 800 }, (_, i) =>
+                x_min + (i * (x_max - x_min) / 799)
+            );
 
-        // Set data for individual points
+            setFineX(fine_x);
+            setInterpolatedY(interpolated_y);
+        } else {
+            console.error("Model function is undefined.");
+        }
+
         setXData(x);
         if (bidChecked) {
             setBidData(bid_iv);
@@ -126,7 +135,7 @@ export default function InteractiblePlot() {
         } else {
             setAskData([]);
         }
-    }, [pennyChecked, bidChecked, askChecked, inputValue]);
+    }, [pennyChecked, bidChecked, askChecked, inputValue, selectedModel]);
 
     return (
         <div style={{ width: '100%' }}>
@@ -143,6 +152,40 @@ export default function InteractiblePlot() {
                 />
             </Box>
             <Box display="flex" justifyContent="center" mb={2}>
+                <FormControl variant="outlined" size="small" sx={{ marginRight: 2, width: '100px' }}>
+                    <InputLabel
+                        id="model-select-label"
+                        sx={{
+                            color: 'white',
+                            '&.Mui-focused': {
+                                color: 'white',
+                            },
+                        }}
+                    >
+                        Model
+                    </InputLabel>
+                    <Select
+                        labelId="model-select-label"
+                        id="model-select"
+                        value={selectedModel}
+                        label="Model"
+                        onChange={(e) => setSelectedModel(e.target.value as 'RFV' | 'SLV' | 'SABR' | 'SVI')}
+                        sx={{
+                            '& .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                            '& .MuiSelect-icon': { color: 'white' },
+                            '& .MuiInputBase-input': { color: 'white' },
+                            '& .MuiInputLabel-root': { color: 'white' },
+                            '& .MuiInputLabel-root.Mui-focused': { color: 'white' },
+                        }}
+                    >
+                        <MenuItem value="RFV">RFV</MenuItem>
+                        <MenuItem value="SLV">SLV</MenuItem>
+                        <MenuItem value="SABR">SABR</MenuItem>
+                        <MenuItem value="SVI">SVI</MenuItem>
+                    </Select>
+                </FormControl>
                 <TextField
                     label="Strike Filter"
                     variant="outlined"
