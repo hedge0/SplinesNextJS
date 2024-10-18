@@ -5,7 +5,7 @@ import React from 'react';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
-export function ChartComponent({ xData, bidData, midData, askData, fineX, interpolatedY, showBid, showAsk }: any) {
+export function ChartComponent({ xData, bidData, midData, askData, fineX, interpolatedY, showBid, showAsk, fitChecked }: any) {
     const plotData: Partial<Plotly.Data>[] = [
         {
             x: xData,
@@ -67,16 +67,18 @@ export function ChartComponent({ xData, bidData, midData, askData, fineX, interp
         });
     }
 
-    // Add the line plot using fineX and interpolatedY
-    plotData.push({
-        x: fineX,
-        y: interpolatedY,
-        mode: 'lines',
-        line: { color: '#FFD700', width: 2 },  // Line for interpolation
-        name: 'Interpolated Line',
-        type: 'scatter',
-        showlegend: true,
-    });
+    // Conditionally add the line plot using fineX and interpolatedY
+    if (fitChecked) {
+        plotData.push({
+            x: fineX,
+            y: interpolatedY,
+            mode: 'lines',
+            line: { color: '#FFD700', width: 2 },  // Line for interpolation
+            name: 'Interpolated Line',
+            type: 'scatter',
+            showlegend: true,
+        });
+    }
 
     return (
         <div className="bg-gray-700 rounded-lg shadow-lg p-8 w-full max-w-6xl">
