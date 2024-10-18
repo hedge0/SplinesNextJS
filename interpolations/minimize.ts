@@ -7,6 +7,17 @@ interface MinimizeResult {
     message: string;
 }
 
+/**
+ * Perform bound-constrained minimization using the L-BFGS-B algorithm.
+ *
+ * @param {function} funcGrad - Function that computes the objective function and its gradient.
+ * @param {number[]} x0 - Initial guess for the variables.
+ * @param {Array<[number, number]>} bounds - Vector of pairs specifying the lower and upper bounds for each variable.
+ * @param {number} [maxiter=15000] - Maximum number of iterations allowed.
+ * @param {number} [ftol=1e-8] - Relative tolerance for the function value convergence criterion.
+ * @param {number} [gtol=1e-5] - Tolerance for the gradient norm convergence criterion.
+ * @returns {MinimizeResult} - The result of the optimization, including the solution, function value, and status.
+ */
 export function minimize(
     funcGrad: (x: number[], grad: number[]) => number,
     x0: number[],
@@ -145,18 +156,46 @@ export function minimize(
     };
 }
 
+/**
+ * Perform dot product of two vectors.
+ *
+ * @param {number[]} a - First vector.
+ * @param {number[]} b - Second vector.
+ * @returns {number} - The dot product of vectors `a` and `b`.
+ */
 function dot(a: number[], b: number[]): number {
     return a.reduce((sum, ai, i) => sum + ai * b[i], 0);
 }
 
+/**
+ * Element-wise addition of two vectors.
+ *
+ * @param {number[]} a - First vector.
+ * @param {number[]} b - Second vector.
+ * @returns {number[]} - Resultant vector after adding `a` and `b` element-wise.
+ */
 function add(a: number[], b: number[]): number[] {
     return a.map((ai, i) => ai + b[i]);
 }
 
+/**
+ * Element-wise subtraction of two vectors.
+ *
+ * @param {number[]} a - First vector.
+ * @param {number[]} b - Second vector.
+ * @returns {number[]} - Resultant vector after subtracting `b` from `a` element-wise.
+ */
 function subtract(a: number[], b: number[]): number[] {
     return a.map((ai, i) => ai - b[i]);
 }
 
+/**
+ * Element-wise scaling of a vector by a scalar value.
+ *
+ * @param {number[]} a - Vector to be scaled.
+ * @param {number} scalar - Scalar multiplier.
+ * @returns {number[]} - Scaled vector.
+ */
 function scale(a: number[], scalar: number): number[] {
     return a.map((ai) => ai * scalar);
 }
