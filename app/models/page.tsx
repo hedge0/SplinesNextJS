@@ -11,6 +11,16 @@ import { InlineMath, BlockMath } from 'react-katex';
 export default function Models() {
     return (
         <Box className="bg-gray-700 rounded-lg shadow-lg p-6">
+            <Typography variant="h5" sx={{ color: 'white', marginBottom: 2 }}>
+                Overview of Volatility Models
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'white', marginBottom: 3 }}>
+                In financial markets, various models are used to capture and interpolate the implied volatility surfaces
+                across different strike prices and maturities. These models provide a framework for estimating the prices
+                of options based on the volatility smile and are essential tools for traders, quants, and analysts. The
+                models below—RFV, SLV, SABR, and SVI—are some of the commonly used models for such purposes, each with
+                its own structure, assumptions, and parameters.
+            </Typography>
             <Box display="flex" alignItems="center">
                 <ListItem sx={{ width: 'auto', padding: 0 }}>
                     <ListItemText primary="•" sx={{ color: 'white', marginRight: '8px' }} />
@@ -45,7 +55,7 @@ export default function Models() {
             </Box>
             <Box sx={{ marginLeft: '24px' }}>
                 <Typography variant="body1" sx={{ color: 'white', marginBottom: 2 }}>
-                    The SLV (Simple Linear Volatility) model is a polynomial model used to describe the implied volatility surface as a function of log-moneyness. This model is often employed when a simpler, more intuitive representation is needed, allowing for smooth fits across strike prices. The SLV model is ideal for scenarios where volatility behavior across strikes follows a polynomial pattern, often seen in less volatile or highly liquid markets. The parameters <InlineMath>a</InlineMath>, <InlineMath>b</InlineMath>, <InlineMath>c</InlineMath>, <InlineMath>d</InlineMath>, and <InlineMath>e</InlineMath> control the curvature of the implied volatility curve.
+                    The SLV (Simple Linear Volatility) model represents the implied volatility surface using a polynomial function with log-moneyness. This model is ideal for simpler markets where volatility behavior is smooth and can be well-approximated by a polynomial curve, making it a popular choice in less volatile markets. The model uses parameters <InlineMath>a</InlineMath>, <InlineMath>b</InlineMath>, <InlineMath>c</InlineMath>, <InlineMath>d</InlineMath>, and <InlineMath>e</InlineMath> to describe the curvature.
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'white' }}>
                     The formula for the SLV model is:

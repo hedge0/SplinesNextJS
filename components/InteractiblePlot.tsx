@@ -8,25 +8,29 @@ import { ChartComponent } from '@/components/ChartComponent';
 import { Checkbox, FormControlLabel, Box, TextField, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import { Interpolations } from '@/interpolations/interpolations';
 
-const S = 566.345;
-const T = 0.015708354371353372;
-const q = 0.0035192;
-const r = 0.0486;
+type InteractiblePlotProps = {
+    S: number;
+    T: number;
+    q: number;
+    r: number;
+    option_type: string;
+};
 
-function filterChartData(chartData: any[], S: number, numStdev: number, twoSigmaMove: boolean = false) {
-    const strikes = chartData.map(data => data.strike);
-    const stdev = Math.sqrt(strikes.reduce((acc, val) => acc + Math.pow(val - S, 2), 0) / strikes.length);
-    let lowerBound = S - numStdev * stdev;
-    let upperBound = S + numStdev * stdev;
+function filterQuoteData(quoteData: any, S: number, stdev: number, pennyChecked: boolean): any[] {
+    const strikes = Object.keys(quoteData).map((strike) => parseFloat(strike));
+    const standardDeviation = Math.sqrt(strikes.reduce((acc, val) => acc + Math.pow(val - S, 2), 0) / strikes.length);
 
-    if (twoSigmaMove) {
-        upperBound = S + 2 * stdev;
-    }
+    const lowerBound = S - stdev * standardDeviation;
+    const upperBound = S + stdev * standardDeviation;
 
-    return chartData.filter(data => data.strike >= lowerBound && data.strike <= upperBound);
+    return Object.entries(quoteData)
+        .filter(([key, value]: any) => {
+            const strike = parseFloat(key);
+            return strike >= lowerBound && strike <= upperBound && !(pennyChecked && value[0] === 0.0);
+        });
 }
 
-export default function InteractiblePlot() {
+export default function InteractiblePlot({ S, T, q, r, option_type }: InteractiblePlotProps) {
     const [xData, setXData] = useState<number[]>([]);
     const [bidData, setBidData] = useState<number[]>([]);
     const [midData, setMidData] = useState<number[]>([]);
@@ -36,6 +40,7 @@ export default function InteractiblePlot() {
     const [bidChecked, setBidChecked] = useState(false);
     const [askChecked, setAskChecked] = useState(false);
     const [pennyChecked, setPennyChecked] = useState(false);
+    const [fitChecked, setFitChecked] = useState(true);
     const [inputValue, setInputValue] = useState<string>('1.25');
     const [selectedModel, setSelectedModel] = useState<'RFV' | 'SLV' | 'SABR' | 'SVI'>('RFV');
 
@@ -60,14 +65,16 @@ export default function InteractiblePlot() {
 
         const stdevValue = parseStandardDeviation(inputValue);
 
-        let chartData = Object.entries(quoteData)
-            .filter(([_, value]) => !(pennyChecked && value[0] === 0.0))
+        let filteredQuoteData = stdevValue === 0.0
+            ? Object.entries(quoteData)
+            : filterQuoteData(quoteData, S, stdevValue, pennyChecked);
+
+        let chartData = filteredQuoteData
             .map(([key, value]) => {
                 const K = parseFloat(key);
                 const bid_price = value[0];
                 const ask_price = value[1];
                 const mid_price = value[2];
-                const option_type = 'calls';
 
                 const bid_iv = calculate_implied_volatility_baw(bid_price, S, K, r, T, q, option_type);
                 const mid_iv = calculate_implied_volatility_baw(mid_price, S, K, r, T, q, option_type);
@@ -79,14 +86,13 @@ export default function InteractiblePlot() {
                     mid_iv,
                     ask_iv,
                 };
-            });
+            })
+            .filter(data => data.mid_iv > 0.005);
 
-        const filteredChartData = stdevValue === 0.0 ? chartData : filterChartData(chartData, S, stdevValue);
-
-        const x = filteredChartData.map((data) => data.strike);
-        const bid_iv = filteredChartData.map((data) => data.bid_iv);
-        const ask_iv = filteredChartData.map((data) => data.ask_iv);
-        const mid_iv = filteredChartData.map((data) => data.mid_iv);
+        const x = chartData.map((data) => data.strike);
+        const bid_iv = chartData.map((data) => data.bid_iv);
+        const ask_iv = chartData.map((data) => data.ask_iv);
+        const mid_iv = chartData.map((data) => data.mid_iv);
 
         const x_min = Math.min(...x);
         const x_max = Math.max(...x);
@@ -135,7 +141,7 @@ export default function InteractiblePlot() {
         } else {
             setAskData([]);
         }
-    }, [pennyChecked, bidChecked, askChecked, inputValue, selectedModel]);
+    }, [pennyChecked, bidChecked, askChecked, inputValue, selectedModel, fitChecked, S, r, T, q, option_type]);
 
     return (
         <div style={{ width: '100%' }}>
@@ -149,9 +155,21 @@ export default function InteractiblePlot() {
                     interpolatedY={interpolatedY}
                     showBid={bidChecked}
                     showAsk={askChecked}
+                    fitChecked={fitChecked}
                 />
             </Box>
             <Box display="flex" justifyContent="center" mb={2}>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={fitChecked}
+                            onChange={(e) => setFitChecked(e.target.checked)}
+                            style={{ color: '#8884d8' }}
+                        />
+                    }
+                    label="Fit"
+                    sx={{ color: 'white', marginRight: 2 }}
+                />
                 <FormControl variant="outlined" size="small" sx={{ marginRight: 2, width: '100px' }}>
                     <InputLabel
                         id="model-select-label"
