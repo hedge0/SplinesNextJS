@@ -5,6 +5,21 @@ import React from 'react';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
+/**
+ * Renders a chart displaying bid, mid, and ask implied volatilities, with an optional fitted line.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {number[]} props.xData - The x-axis data representing the strike prices.
+ * @param {number[]} props.bidData - The bid implied volatility values.
+ * @param {number[]} props.midData - The mid implied volatility values.
+ * @param {number[]} props.askData - The ask implied volatility values.
+ * @param {number[]} props.fineX - The x-axis data for the interpolated line.
+ * @param {number[]} props.interpolatedY - The y-axis data for the interpolated line.
+ * @param {boolean} props.showBid - Whether to show the bid implied volatility data.
+ * @param {boolean} props.showAsk - Whether to show the ask implied volatility data.
+ * @param {boolean} props.fitChecked - Whether to show the interpolated fit line.
+ * @returns {JSX.Element} - The rendered chart component.
+ */
 export function ChartComponent({ xData, bidData, midData, askData, fineX, interpolatedY, showBid, showAsk, fitChecked }: any) {
     const plotData: Partial<Plotly.Data>[] = [
         {
@@ -67,13 +82,12 @@ export function ChartComponent({ xData, bidData, midData, askData, fineX, interp
         });
     }
 
-    // Conditionally add the line plot using fineX and interpolatedY
     if (fitChecked) {
         plotData.push({
             x: fineX,
             y: interpolatedY,
             mode: 'lines',
-            line: { color: '#FFD700', width: 2 },  // Line for interpolation
+            line: { color: '#FFD700', width: 2 },
             name: 'Interpolated Line',
             type: 'scatter',
             showlegend: true,
