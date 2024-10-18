@@ -20,7 +20,8 @@
     "react-dom": "^18",
     "react-katex": "^3.0.1",
     "react-plotly.js": "^2.6.0",
-    "recharts": "^2.13.0"
+    "recharts": "^2.13.0",
+    "yahoo-finance2": "^2.13.2"
   },
   "devDependencies": {
     "@types/mathjs": "^9.4.2",
