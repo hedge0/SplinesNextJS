@@ -114,7 +114,15 @@ export default function Home() {
     setLoading(false);
   };
 
-  const goToPage2 = () => {
+  const goToPage2 = async () => {
+    try {
+      const response = await fetch(`/api/options-prices?ticker=${ticker}&expirationDate=${expirationDate}&optionType=${optionType}`);
+      const data = await response.json();
+      console.log("Options Prices API Response:", data);
+    } catch (error) {
+      console.error("Error fetching options prices:", error);
+    }
+
     setCurrentPage(2);
     setExpirationDate('');
     setOptionType('calls');
