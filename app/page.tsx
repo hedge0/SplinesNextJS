@@ -13,6 +13,7 @@ export default function Home() {
   const [expirationDate, setExpirationDate] = useState<string>('');
   const [optionType, setOptionType] = useState<string>('calls');
   const [loading, setLoading] = useState<boolean>(false);
+  const [expirationDates, setExpirationDates] = useState<string[]>([]); // Store expiration dates
 
   const [r, setr] = useState<number>(0.0);
   const [S, setS] = useState<number>(0.0);
@@ -84,14 +85,24 @@ export default function Home() {
       const response = await fetch(`/api/quotes?ticker=${ticker}`);
       const data = await response.json();
 
-      const price = data?.marketPrice; // Updated to match the new API response
-      const dividendYield = data?.dividendYield; // Updated to match the new API response
+      const price = data?.marketPrice;
+      const dividendYield = data?.dividendYield;
 
       if (price !== undefined) {
         setS(price);
-        setQ(dividendYield || 0.0); // Set q to 0 if dividendYield is undefined
+        setQ(dividendYield || 0.0);
         setIsValidTicker(true);
         setShowDropdowns(true);
+
+        // Fetch expiration dates and set the default date to the first one
+        const optionsResponse = await fetch(`/api/options?ticker=${ticker}`);
+        const optionsData = await optionsResponse.json();
+        const { expirationDates } = optionsData;
+
+        if (expirationDates.length > 0) {
+          setExpirationDates(expirationDates);
+          setExpirationDate(expirationDates[0]); // Default to the first date
+        }
       } else {
         setIsValidTicker(false);
         setShowDropdowns(false);
@@ -190,9 +201,9 @@ export default function Home() {
                       '& .MuiInputBase-input': { color: 'white' },
                     }}
                   >
-                    <MenuItem value="2024-01-19">2024-01-19</MenuItem>
-                    <MenuItem value="2024-02-16">2024-02-16</MenuItem>
-                    <MenuItem value="2024-03-15">2024-03-15</MenuItem>
+                    {expirationDates.map((date) => (
+                      <MenuItem key={date} value={date}>{date}</MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
 
