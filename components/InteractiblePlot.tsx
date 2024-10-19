@@ -39,7 +39,7 @@ export default function InteractiblePlot({ S, T, q, r, option_type, quoteData }:
     const [interpolatedY, setInterpolatedY] = useState<number[]>([]);
     const [bidChecked, setBidChecked] = useState(false);
     const [askChecked, setAskChecked] = useState(false);
-    const [pennyChecked, setPennyChecked] = useState(false);
+    const [pennyChecked, setPennyChecked] = useState(true);
     const [fitChecked, setFitChecked] = useState(true);
     const [inputValue, setInputValue] = useState<string>('1.25');
     const [selectedModel, setSelectedModel] = useState<'RFV' | 'SLV' | 'SABR' | 'SVI'>('RFV');

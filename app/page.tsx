@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import InteractiblePlot from "@/components/InteractiblePlot";
-import { quoteData } from '@/data/data';
 import { Button, TextField, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent, Box, IconButton, CircularProgress } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -19,6 +18,7 @@ export default function Home() {
   const [r, setr] = useState<number>(0.0);
   const [S, setS] = useState<number>(0.0);
   const [q, setQ] = useState<number>(0.0);
+  const [quoteData, setQuoteData] = useState<any>({}); // Initialize quoteData state
 
   const T = 0.015708354371353372;
   const fullText = 'Enter Ticker  ';
@@ -119,6 +119,16 @@ export default function Home() {
       const response = await fetch(`/api/options-prices?ticker=${ticker}&expirationDate=${expirationDate}&optionType=${optionType}`);
       const data = await response.json();
       console.log("Options Prices API Response:", data);
+
+      // Transform the API response into the required quoteData format
+      const parsedQuoteData: any = {};
+      data.options.forEach((option: any) => {
+        const { strike, bid, ask } = option;
+        const mid = (bid + ask) / 2;
+        parsedQuoteData[strike] = [bid, ask, mid];
+      });
+
+      setQuoteData(parsedQuoteData); // Set the transformed quoteData
     } catch (error) {
       console.error("Error fetching options prices:", error);
     }
