@@ -1,26 +1,57 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InteractiblePlot from "@/components/InteractiblePlot";
-import { Button, TextField, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent } from '@mui/material';
+import { Button, TextField, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent, Box, IconButton, CircularProgress } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<number>(1);
-
   const [ticker, setTicker] = useState<string>('');
   const [isValidTicker, setIsValidTicker] = useState<boolean>(true);
+  const [showDropdowns, setShowDropdowns] = useState<boolean>(false);
   const [expirationDate, setExpirationDate] = useState<string>('');
   const [optionType, setOptionType] = useState<string>('calls');
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const S = 566.345;
   const T = 0.015708354371353372;
   const q = 0.0035192;
   const r = 0.0486;
 
-  // Handler functions
+  const [displayedText, setDisplayedText] = useState('');
+  const fullText = 'Enter Ticker ';
+
+  useEffect(() => {
+    let index = 0;
+    const typingSpeed = 100;
+
+    const typingEffect = setInterval(() => {
+      if (index < fullText.length) {
+        setDisplayedText(fullText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(typingEffect);
+      }
+    }, typingSpeed);
+
+    return () => clearInterval(typingEffect);
+  }, []);
+
+  useEffect(() => {
+    const blinkCursor = setInterval(() => {
+      setDisplayedText((prevText) =>
+        prevText.endsWith('|') ? prevText.slice(0, -1) : prevText + '|'
+      );
+    }, 500);
+
+    return () => clearInterval(blinkCursor);
+  }, []);
+
   const handleTickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTicker(e.target.value);
+    setShowDropdowns(false);
   };
 
   const handleExpirationChange = (event: SelectChangeEvent<string>) => {
@@ -31,8 +62,8 @@ export default function Home() {
     setOptionType(event.target.value);
   };
 
-  // Verify the ticker and navigate to Page 2 if valid
-  const goToPage2 = async () => {
+  const verifyTicker = async () => {
+    setLoading(true); // Start loading
     try {
       const response = await fetch(`/api/quotes?ticker=${ticker}`);
       const data = await response.json();
@@ -41,73 +72,165 @@ export default function Home() {
       if (price !== undefined) {
         setCurrentPrice(price);
         setIsValidTicker(true);
-        setCurrentPage(2);  // Navigate to Page 2 only if the ticker is valid
+        setShowDropdowns(true);
       } else {
-        setIsValidTicker(false);  // Show error if ticker is invalid
+        setIsValidTicker(false);
+        setShowDropdowns(false);
       }
     } catch (error) {
-      setIsValidTicker(false);  // Handle error in fetching ticker
-      console.error(`Error fetching price for ${ticker}:`, error);
+      setIsValidTicker(false);
+      setShowDropdowns(false);
     }
+    setLoading(false); // Stop loading once fetch is done
   };
 
-  const goToPage3 = () => setCurrentPage(3);
-  const goToPage1 = () => {
-    setCurrentPage(1);
+  const goToPage2 = () => {
+    setCurrentPage(2);
     setExpirationDate('');
     setOptionType('calls');
-    setCurrentPrice(null);
+    setShowDropdowns(false);
   };
-  const goBackToPage2 = () => setCurrentPage(2);
-  const goBackToPage1 = () => setCurrentPage(1);
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-[95vh] py-4 mt-10">
+    <div className="flex flex-col items-center justify-start min-h-[95vh] py-4" style={{ marginTop: '60px' }}>
       {currentPage === 1 && (
-        <>
-          <h1>Enter Ticker</h1>
-          <TextField
-            label="Ticker"
-            variant="outlined"
-            value={ticker}
-            onChange={handleTickerChange}
-            error={!isValidTicker}
-            helperText={!isValidTicker ? "Invalid ticker" : ""}
-          />
-          <Button variant="contained" color="primary" onClick={goToPage2} disabled={!ticker}>
-            Search
-          </Button>
-        </>
+        <Box
+          className="bg-gray-700 rounded-lg shadow-lg p-6"
+          sx={{
+            width: '100%',
+            maxWidth: '800px',
+            transition: 'all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            height: showDropdowns ? 'auto' : 'fit-content',
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+            <TextField
+              label=""
+              variant="outlined"
+              fullWidth
+              placeholder={displayedText}
+              value={ticker}
+              onChange={handleTickerChange}
+              error={!isValidTicker}
+              helperText={!isValidTicker ? "Invalid ticker" : ""}
+              autoComplete="off"
+              sx={{
+                '& .MuiInputBase-input': { color: 'white' },
+                '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                '& .MuiInputBase-input::placeholder': { color: '#cccccc', opacity: 1 },
+                '& .MuiFormHelperText-root': {
+                  marginTop: '4px',
+                  position: 'absolute',
+                  bottom: '-22px',
+                  left: '10px',
+                  color: '#f44336',
+                },
+              }}
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: '64px', minHeight: '64px' }}>
+              {loading ? (
+                <CircularProgress sx={{ color: 'white', width: '35px', height: '35px' }} />
+              ) : (
+                <IconButton
+                  onClick={verifyTicker}
+                  disabled={!ticker}
+                  sx={{ color: 'white', width: '64px', height: '64px' }}
+                >
+                  <SearchIcon sx={{ fontSize: 35 }} />
+                </IconButton>
+              )}
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              maxHeight: showDropdowns ? '500px' : '0',
+              opacity: showDropdowns ? 1 : 0,
+              transition: 'all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              overflow: 'hidden',
+              marginTop: showDropdowns ? 3 : 0,
+            }}
+          >
+            {showDropdowns && (
+              <>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel sx={{ color: 'white', '&.Mui-focused': { color: 'white' } }}>
+                    Select Expiration Date
+                  </InputLabel>
+                  <Select
+                    value={expirationDate}
+                    onChange={handleExpirationChange}
+                    sx={{
+                      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                      '& .MuiSelect-icon': { color: 'white' },
+                      '& .MuiInputBase-input': { color: 'white' },
+                    }}
+                  >
+                    <MenuItem value="2024-01-19">2024-01-19</MenuItem>
+                    <MenuItem value="2024-02-16">2024-02-16</MenuItem>
+                    <MenuItem value="2024-03-15">2024-03-15</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth margin="normal">
+                  <InputLabel sx={{ color: 'white', '&.Mui-focused': { color: 'white' } }}>
+                    Select Option Type
+                  </InputLabel>
+                  <Select
+                    value={optionType}
+                    onChange={handleOptionTypeChange}
+                    sx={{
+                      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8884d8' },
+                      '& .MuiSelect-icon': { color: 'white' },
+                      '& .MuiInputBase-input': { color: 'white' },
+                    }}
+                  >
+                    <MenuItem value="calls">Calls</MenuItem>
+                    <MenuItem value="puts">Puts</MenuItem>
+                  </Select>
+                </FormControl>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                  <Button
+                    variant="text"
+                    onClick={goToPage2}
+                    disabled={!expirationDate || !optionType}
+                    sx={{
+                      color: 'white',
+                      '&:hover': {
+                        color: '#cccccc',
+                      },
+                    }}
+                  >
+                    Enter
+                  </Button>
+                </Box>
+              </>
+            )}
+          </Box>
+        </Box>
       )}
 
       {currentPage === 2 && (
         <>
-          <Button onClick={goBackToPage1}>← Back</Button>
-          <h1>Select Expiration Date and Option Type</h1>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Select Expiration Date</InputLabel>
-            <Select value={expirationDate} onChange={handleExpirationChange}>
-              <MenuItem value="2024-01-19">2024-01-19</MenuItem>
-              <MenuItem value="2024-02-16">2024-02-16</MenuItem>
-              <MenuItem value="2024-03-15">2024-03-15</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Select Option Type</InputLabel>
-            <Select value={optionType} onChange={handleOptionTypeChange}>
-              <MenuItem value="calls">Calls</MenuItem>
-              <MenuItem value="puts">Puts</MenuItem>
-            </Select>
-          </FormControl>
-          <Button variant="contained" color="primary" onClick={goToPage3} disabled={!expirationDate || !optionType}>
-            Enter
+          <Button
+            onClick={() => setCurrentPage(1)}
+            sx={{
+              color: 'white',
+              '&:hover': {
+                color: '#cccccc',
+              }
+            }}
+          >
+            ← Back
           </Button>
-        </>
-      )}
 
-      {currentPage === 3 && (
-        <>
-          <Button onClick={goBackToPage2}>← Back</Button>
           <InteractiblePlot S={S} T={T} q={q} r={r} option_type={optionType} />
         </>
       )}

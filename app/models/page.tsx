@@ -11,7 +11,7 @@ import { InlineMath, BlockMath } from 'react-katex';
 export default function Models() {
     return (
         <Box className="bg-gray-700 rounded-lg shadow-lg p-6">
-            <Typography variant="h5" sx={{ color: 'white', marginBottom: 2 }}>
+            <Typography variant="h5" sx={{ color: 'white', marginBottom: 2, textAlign: 'center' }}>
                 Overview of Volatility Models
             </Typography>
             <Typography variant="body1" sx={{ color: 'white', marginBottom: 3 }}>
@@ -115,6 +115,48 @@ export default function Models() {
                 <Typography variant="body2" sx={{ color: 'white', marginBottom: 3 }}>
                     - <InlineMath>k</InlineMath> is the log-moneyness <br />
                     - <InlineMath>a</InlineMath>, <InlineMath>b</InlineMath>, <InlineMath>rho</InlineMath>, <InlineMath>m</InlineMath>, and <InlineMath>sigma</InlineMath> are model parameters.
+                </Typography>
+            </Box>
+            <Typography variant="h5" sx={{ color: 'white', marginTop: 6, marginBottom: 2, textAlign: 'center' }}>
+                Overview of Pricing Models
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'white', marginBottom: 3 }}>
+                Pricing models are essential for determining the fair value of options, incorporating factors such as the
+                stock price, strike price, time to expiration, volatility, and dividend yield. These models allow traders
+                to evaluate American options with early exercise features.
+            </Typography>
+            <Box display="flex" alignItems="center">
+                <ListItem sx={{ width: 'auto', padding: 0 }}>
+                    <ListItemText primary="•" sx={{ color: 'white', marginRight: '8px' }} />
+                </ListItem>
+                <Typography variant="h6" sx={{ color: 'white', marginBottom: 1 }}>
+                    Barone-Adesi Whaley
+                </Typography>
+            </Box>
+            <Box sx={{ marginLeft: '24px' }}>
+                <Typography variant="body1" sx={{ color: 'white', marginBottom: 2 }}>
+                    The Barone-Adesi Whaley model is used for pricing American options, accounting for dividends and early exercise.
+                    It approximates the price of an American option and adjusts the classic Black-Scholes model to handle
+                    dividend-paying assets.
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'white' }}>
+                    The formula for the Barone-Adesi Whaley model (for calls) is:
+                </Typography>
+                <BlockMath math={`\\text{Price}_{calls} = S \\cdot e^{-qT} \\cdot N(d_1) - K \\cdot e^{-rT} \\cdot N(d_2)`} />
+                <Typography variant="body2" sx={{ color: 'white', marginTop: 2 }}>
+                    and for puts is:
+                </Typography>
+                <BlockMath math={`\\text{Price}_{puts} = K \\cdot e^{-rT} \\cdot N(-d_2) - S \\cdot e^{-qT} \\cdot N(-d_1)`} />
+                <Typography variant="body2" sx={{ color: 'white', marginTop: 2 }}>
+                    where:
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'white', marginBottom: 3 }}>
+                    - <InlineMath>S</InlineMath> is the current stock price <br />
+                    - <InlineMath>K</InlineMath> is the strike price <br />
+                    - <InlineMath>T</InlineMath> is the time to expiration <br />
+                    - <InlineMath>r</InlineMath> is the risk-free interest rate <br />
+                    - <InlineMath>q</InlineMath> is the continuous dividend yield <br />
+                    - <InlineMath>N()</InlineMath> represents the cumulative normal distribution function.
                 </Typography>
             </Box>
         </Box>
