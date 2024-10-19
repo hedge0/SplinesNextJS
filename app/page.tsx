@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import InteractiblePlot from "@/components/InteractiblePlot";
 import { Button, TextField, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent, Box, IconButton, CircularProgress } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import { DateTime } from 'luxon';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -18,9 +19,10 @@ export default function Home() {
   const [r, setr] = useState<number>(0.0);
   const [S, setS] = useState<number>(0.0);
   const [q, setQ] = useState<number>(0.0);
-  const [quoteData, setQuoteData] = useState<any>({}); // Initialize quoteData state
+  const [quoteData, setQuoteData] = useState<any>({});
+  const [T, setT] = useState<number>(0.0);
+  const [loadingPage2, setLoadingPage2] = useState<boolean>(false);
 
-  const T = 0.015708354371353372;
   const fullText = 'Enter Ticker  ';
   const [displayedText, setDisplayedText] = useState('');
   const [isFullTextDisplayed, setIsFullTextDisplayed] = useState(false);
@@ -114,11 +116,30 @@ export default function Home() {
     setLoading(false);
   };
 
+  const calculateT = (expirationDate: string) => {
+    const estZone = 'America/New_York'; // EST timezone
+    const currentTime = DateTime.now().setZone(estZone); // Convert current time to EST
+
+    // Parse expiration date and set time to 4:00 PM (close of market)
+    const expirationTime = DateTime.fromISO(expirationDate, { zone: estZone }).set({
+      hour: 16,
+      minute: 0,
+      second: 0,
+    });
+
+    const secondsToExpiration = expirationTime.diff(currentTime, 'seconds').seconds;
+    const timeToExpiration = secondsToExpiration / (365 * 24 * 3600);
+
+    setT(timeToExpiration);
+  };
+
   const goToPage2 = async () => {
+    setLoadingPage2(true); // Start loading animation for Enter button
     try {
       const response = await fetch(`/api/options-prices?ticker=${ticker}&expirationDate=${expirationDate}&optionType=${optionType}`);
       const data = await response.json();
-      console.log("Options Prices API Response:", data);
+
+      calculateT(expirationDate);
 
       // Transform the API response into the required quoteData format
       const parsedQuoteData: any = {};
@@ -128,11 +149,11 @@ export default function Home() {
         parsedQuoteData[strike] = [bid, ask, mid];
       });
 
-      setQuoteData(parsedQuoteData); // Set the transformed quoteData
+      setQuoteData(parsedQuoteData);
     } catch (error) {
       console.error("Error fetching options prices:", error);
     }
-
+    setLoadingPage2(false);
     setCurrentPage(2);
     setExpirationDate('');
     setOptionType('calls');
@@ -245,19 +266,23 @@ export default function Home() {
                   </Select>
                 </FormControl>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                  <Button
-                    variant="text"
-                    onClick={goToPage2}
-                    disabled={!expirationDate || !optionType}
-                    sx={{
-                      color: 'white',
-                      '&:hover': {
-                        color: '#cccccc',
-                      },
-                    }}
-                  >
-                    Enter
-                  </Button>
+                  {loadingPage2 ? ( // Show CircularProgress when loading
+                    <CircularProgress sx={{ color: 'white', width: '35px', height: '35px' }} />
+                  ) : (
+                    <Button
+                      variant="text"
+                      onClick={goToPage2}
+                      disabled={!expirationDate || !optionType}
+                      sx={{
+                        color: 'white',
+                        '&:hover': {
+                          color: '#cccccc',
+                        },
+                      }}
+                    >
+                      Enter
+                    </Button>
+                  )}
                 </Box>
               </>
             )}
