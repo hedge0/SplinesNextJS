@@ -12,20 +12,32 @@ export default function Home() {
   const [showDropdowns, setShowDropdowns] = useState<boolean>(false);
   const [expirationDate, setExpirationDate] = useState<string>('');
   const [optionType, setOptionType] = useState<string>('calls');
-  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const S = 566.345;
-  const T = 0.015708354371353372;
-  const q = 0.0035192;
-  const r = 0.0486;
+  const [r, setr] = useState<number>(0.0);
+  const [S, setS] = useState<number>(0.0);
+  const [q, setQ] = useState<number>(0.0);
 
+  const T = 0.015708354371353372;
+  const fullText = 'Enter Ticker  ';
   const [displayedText, setDisplayedText] = useState('');
-  const fullText = 'Enter Ticker ';
+  const [isFullTextDisplayed, setIsFullTextDisplayed] = useState(false);
 
   useEffect(() => {
     let index = 0;
     const typingSpeed = 100;
+
+    const fetchSOFRData = async () => {
+      try {
+        const response = await fetch('/api/sofr');
+        const result = await response.json();
+        if (result.rate) {
+          setr(result.rate);
+        }
+      } catch (error) {
+        console.error('Error fetching SOFR data:', error);
+      }
+    };
 
     const typingEffect = setInterval(() => {
       if (index < fullText.length) {
@@ -33,6 +45,8 @@ export default function Home() {
         index++;
       } else {
         clearInterval(typingEffect);
+        setIsFullTextDisplayed(true);
+        fetchSOFRData();
       }
     }, typingSpeed);
 
@@ -40,14 +54,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const blinkCursor = setInterval(() => {
-      setDisplayedText((prevText) =>
-        prevText.endsWith('|') ? prevText.slice(0, -1) : prevText + '|'
-      );
-    }, 500);
+    if (currentPage === 1 && isFullTextDisplayed) {
+      const blinkCursor = setInterval(() => {
+        setDisplayedText((prevText) =>
+          prevText.endsWith('▌') ? prevText.slice(0, -1) : prevText + '▌'
+        );
+      }, 500);
 
-    return () => clearInterval(blinkCursor);
-  }, []);
+      return () => clearInterval(blinkCursor);
+    }
+  }, [isFullTextDisplayed, currentPage]);
 
   const handleTickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTicker(e.target.value);
@@ -63,14 +79,17 @@ export default function Home() {
   };
 
   const verifyTicker = async () => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const response = await fetch(`/api/quotes?ticker=${ticker}`);
       const data = await response.json();
-      const price = data?.quote?.regularMarketPrice;
+
+      const price = data?.marketPrice; // Updated to match the new API response
+      const dividendYield = data?.dividendYield; // Updated to match the new API response
 
       if (price !== undefined) {
-        setCurrentPrice(price);
+        setS(price);
+        setQ(dividendYield || 0.0); // Set q to 0 if dividendYield is undefined
         setIsValidTicker(true);
         setShowDropdowns(true);
       } else {
@@ -81,7 +100,7 @@ export default function Home() {
       setIsValidTicker(false);
       setShowDropdowns(false);
     }
-    setLoading(false); // Stop loading once fetch is done
+    setLoading(false);
   };
 
   const goToPage2 = () => {
