@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import InteractiblePlot from "@/components/InteractiblePlot";
+import { quoteData } from '@/data/data';
 import { Button, TextField, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent, Box, IconButton, CircularProgress } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -13,7 +14,7 @@ export default function Home() {
   const [expirationDate, setExpirationDate] = useState<string>('');
   const [optionType, setOptionType] = useState<string>('calls');
   const [loading, setLoading] = useState<boolean>(false);
-  const [expirationDates, setExpirationDates] = useState<string[]>([]); // Store expiration dates
+  const [expirationDates, setExpirationDates] = useState<string[]>([]);
 
   const [r, setr] = useState<number>(0.0);
   const [S, setS] = useState<number>(0.0);
@@ -94,14 +95,13 @@ export default function Home() {
         setIsValidTicker(true);
         setShowDropdowns(true);
 
-        // Fetch expiration dates and set the default date to the first one
         const optionsResponse = await fetch(`/api/options?ticker=${ticker}`);
         const optionsData = await optionsResponse.json();
         const { expirationDates } = optionsData;
 
         if (expirationDates.length > 0) {
           setExpirationDates(expirationDates);
-          setExpirationDate(expirationDates[0]); // Default to the first date
+          setExpirationDate(expirationDates[0]);
         }
       } else {
         setIsValidTicker(false);
@@ -261,7 +261,7 @@ export default function Home() {
             ← Back
           </Button>
 
-          <InteractiblePlot S={S} T={T} q={q} r={r} option_type={optionType} />
+          <InteractiblePlot S={S} T={T} q={q} r={r} option_type={optionType} quoteData={quoteData} />
         </>
       )}
     </div>
