@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { quoteData } from '@/data/data';
 import { calculate_implied_volatility_baw } from '@/models/models';
 import React from 'react';
 import { ChartComponent } from '@/components/ChartComponent';
@@ -14,6 +13,7 @@ type InteractiblePlotProps = {
     q: number;
     r: number;
     option_type: string;
+    quoteData: any;
 };
 
 function filterQuoteData(quoteData: any, S: number, stdev: number, pennyChecked: boolean): any[] {
@@ -30,7 +30,7 @@ function filterQuoteData(quoteData: any, S: number, stdev: number, pennyChecked:
         });
 }
 
-export default function InteractiblePlot({ S, T, q, r, option_type }: InteractiblePlotProps) {
+export default function InteractiblePlot({ S, T, q, r, option_type, quoteData }: InteractiblePlotProps) {
     const [xData, setXData] = useState<number[]>([]);
     const [bidData, setBidData] = useState<number[]>([]);
     const [midData, setMidData] = useState<number[]>([]);
@@ -141,7 +141,7 @@ export default function InteractiblePlot({ S, T, q, r, option_type }: Interactib
         } else {
             setAskData([]);
         }
-    }, [pennyChecked, bidChecked, askChecked, inputValue, selectedModel, fitChecked, S, r, T, q, option_type]);
+    }, [pennyChecked, bidChecked, askChecked, inputValue, selectedModel, fitChecked, S, r, T, q, option_type, quoteData]);
 
     return (
         <div style={{ width: '100%' }}>
