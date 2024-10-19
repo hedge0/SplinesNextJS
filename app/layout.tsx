@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-gray-800 bg-[url('/purple-pattern.svg')] bg-repeat`}>
+      <body className={`${inter.className} min-h-screen h-screen bg-gray-800`}>
         <nav className="bg-gray-900 p-4">
           <ul className="flex space-x-4 justify-center">
             <li>

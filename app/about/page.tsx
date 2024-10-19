@@ -12,7 +12,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 export default function About() {
     return (
         <Box className="bg-gray-700 rounded-lg shadow-lg p-6">
-            <Typography variant="h5" sx={{ color: 'white', marginBottom: 2 }}>
+            <Typography variant="h5" sx={{ color: 'white', marginBottom: 2, textAlign: 'center' }}>
                 About
             </Typography>
             <Typography variant="body1" sx={{ color: 'white', marginBottom: 3 }}>
