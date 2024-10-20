@@ -321,6 +321,7 @@ export default function Home() {
         <>
           <Button
             onClick={() => {
+              setShowDropdowns(false);
               setCurrentPage(1);
               setExpirationDate('');
               setOptionType('calls');
