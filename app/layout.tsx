@@ -5,11 +5,20 @@ import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
+/**
+ * Metadata for the Next.js application, defining the title and description.
+ */
 export const metadata: Metadata = {
   title: "Quote Data Chart",
   description: "A Next.js app displaying quote data in a chart",
 };
 
+/**
+ * RootLayout component that wraps the entire application, including navigation and layout structure.
+ * 
+ * @param {React.ReactNode} children - The child components or pages to render inside the layout.
+ * @returns {JSX.Element} - The layout structure for the app, including the navigation bar and main content area.
+ */
 export default function RootLayout({
   children,
 }: {

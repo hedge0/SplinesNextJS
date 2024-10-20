@@ -13,9 +13,20 @@ type InteractiblePlotProps = {
     q: number;
     r: number;
     option_type: string;
+    expirationDate: string;
+    ticker: string;
     quoteData: any;
 };
 
+/**
+ * Filters the quote data based on the underlying price, standard deviation, and penny filtering.
+ *
+ * @param {any} quoteData - The raw quote data containing bid, ask, and mid prices for strikes.
+ * @param {number} S - The current underlying stock price.
+ * @param {number} stdev - The number of standard deviations to use for filtering strikes.
+ * @param {boolean} pennyChecked - Whether to exclude penny options (where the bid price is zero).
+ * @returns {any[]} - The filtered quote data.
+ */
 function filterQuoteData(quoteData: any, S: number, stdev: number, pennyChecked: boolean): any[] {
     const strikes = Object.keys(quoteData).map((strike) => parseFloat(strike));
     const standardDeviation = Math.sqrt(strikes.reduce((acc, val) => acc + Math.pow(val - S, 2), 0) / strikes.length);
@@ -30,7 +41,13 @@ function filterQuoteData(quoteData: any, S: number, stdev: number, pennyChecked:
         });
 }
 
-export default function InteractiblePlot({ S, T, q, r, option_type, quoteData }: InteractiblePlotProps) {
+/**
+ * Renders an interactive plot for implied volatility data based on the selected options and filters.
+ *
+ * @param {InteractiblePlotProps} props - The input properties containing underlying, time to expiration, and quote data.
+ * @returns {JSX.Element} - The JSX for the interactive plot.
+ */
+export default function InteractiblePlot({ S, T, q, r, option_type, expirationDate, ticker, quoteData }: InteractiblePlotProps) {
     const [xData, setXData] = useState<number[]>([]);
     const [bidData, setBidData] = useState<number[]>([]);
     const [midData, setMidData] = useState<number[]>([]);
@@ -45,6 +62,12 @@ export default function InteractiblePlot({ S, T, q, r, option_type, quoteData }:
     const [selectedModel, setSelectedModel] = useState<'RFV' | 'SLV' | 'SABR' | 'SVI'>('RFV');
 
     useEffect(() => {
+        /**
+         * Parses and validates the user input for standard deviation, ensuring it is a valid number.
+         *
+         * @param {string} inputValue - The raw input value for the standard deviation.
+         * @returns {number} - The parsed standard deviation value or a default value of 1.25.
+         */
         function parseStandardDeviation(inputValue: string): number {
             let input = inputValue.trim();
 
@@ -156,6 +179,10 @@ export default function InteractiblePlot({ S, T, q, r, option_type, quoteData }:
                     showBid={bidChecked}
                     showAsk={askChecked}
                     fitChecked={fitChecked}
+                    optionType={option_type}
+                    ticker={ticker}
+                    expirationDate={expirationDate}
+                    S={S}
                 />
             </Box>
             <Box display="flex" justifyContent="center" mb={2}>
