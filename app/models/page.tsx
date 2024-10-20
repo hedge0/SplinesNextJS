@@ -1,3 +1,5 @@
+'use client';
+
 import { Box, Typography, ListItem, ListItemText } from '@mui/material';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
