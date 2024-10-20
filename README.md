@@ -1,4 +1,4 @@
-# Quote Data Chart Application
+# SplinesNextJS Application
 
 This is a **Next.js** application designed to fetch and display financial quote data for options in an interactive chart format. Users can enter a stock ticker, select an option's expiration date, and choose between calls or puts. The app then fetches real-time financial data and displays implied volatilities for bid, ask, and mid prices in a dynamic chart.
 
