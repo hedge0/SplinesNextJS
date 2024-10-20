@@ -82,3 +82,7 @@ To learn more about **Next.js**, check out the following resources:
 You can easily deploy this application using [Vercel](https://vercel.com), the creators of Next.js.
 
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## License
+
+This project is licensed under the MIT License.
