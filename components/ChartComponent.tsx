@@ -1,5 +1,3 @@
-'use client';
-
 import dynamic from 'next/dynamic';
 import React from 'react';
 
@@ -18,16 +16,20 @@ const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
  * @param {boolean} props.showBid - Whether to show the bid implied volatility data.
  * @param {boolean} props.showAsk - Whether to show the ask implied volatility data.
  * @param {boolean} props.fitChecked - Whether to show the interpolated fit line.
+ * @param {string} props.optionType - The type of options (calls or puts).
+ * @param {string} props.ticker - The stock ticker symbol.
+ * @param {string} props.expirationDate - The option's expiration date.
+ * @param {number} props.S - The current stock price.
  * @returns {JSX.Element} - The rendered chart component.
  */
-export function ChartComponent({ xData, bidData, midData, askData, fineX, interpolatedY, showBid, showAsk, fitChecked }: any) {
+export function ChartComponent({ xData, bidData, midData, askData, fineX, interpolatedY, showBid, showAsk, fitChecked, optionType, ticker, expirationDate, S }: any) {
     const plotData: Partial<Plotly.Data>[] = [
         {
             x: xData,
             y: midData,
             mode: 'markers',
             marker: { color: '#8884d8', size: 8 },
-            name: 'Mid IV',
+            name: `Mid IV`,
             type: 'scatter',
         },
     ];
@@ -39,7 +41,7 @@ export function ChartComponent({ xData, bidData, midData, askData, fineX, interp
                 y: bidData,
                 mode: 'markers',
                 marker: { color: '#8884d8', size: 6 },
-                name: 'Bid IV',
+                name: `Bid IV`,
                 type: 'scatter',
             }
         );
@@ -64,7 +66,7 @@ export function ChartComponent({ xData, bidData, midData, askData, fineX, interp
                 y: askData,
                 mode: 'markers',
                 marker: { color: '#8884d8', size: 6 },
-                name: 'Ask IV',
+                name: `Ask IV`,
                 type: 'scatter',
             }
         );
@@ -103,11 +105,11 @@ export function ChartComponent({ xData, bidData, midData, askData, fineX, interp
                     paper_bgcolor: 'rgba(0,0,0,0)',
                     plot_bgcolor: 'rgba(0,0,0,0)',
                     title: {
-                        text: 'Quote Data',
+                        text: `${ticker.toUpperCase()}: $${S}  -  (${optionType.toUpperCase()}, Exp. ${expirationDate})`,
                         font: { color: '#fff' },
                     },
                     xaxis: {
-                        title: 'Strike Price (K)',
+                        title: 'Strike (K)',
                         color: '#fff',
                         showgrid: true,
                         gridcolor: '#555',
@@ -122,7 +124,7 @@ export function ChartComponent({ xData, bidData, midData, askData, fineX, interp
                         t: 40,
                         r: 20,
                         b: 40,
-                        l: 40,
+                        l: 60,
                     },
                     dragmode: 'pan',
                     modebar: {

@@ -6,6 +6,12 @@ import { Button, TextField, MenuItem, Select, InputLabel, FormControl, SelectCha
 import SearchIcon from '@mui/icons-material/Search';
 import { DateTime } from 'luxon';
 
+/**
+ * Home component that allows users to enter a ticker, select an expiration date and option type,
+ * and view an interactive implied volatility plot for the selected options.
+ * 
+ * @returns {JSX.Element} The Home component with a form for user input and chart display.
+ */
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [ticker, setTicker] = useState<string>('');
@@ -31,6 +37,9 @@ export default function Home() {
     let index = 0;
     const typingSpeed = 100;
 
+    /**
+     * Fetches SOFR data and sets the risk-free rate (r).
+     */
     const fetchSOFRData = async () => {
       try {
         const response = await fetch('/api/sofr');
@@ -69,19 +78,37 @@ export default function Home() {
     }
   }, [isFullTextDisplayed, currentPage]);
 
+  /**
+   * Handles changes to the ticker input field.
+   * 
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input event.
+   */
   const handleTickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTicker(e.target.value);
     setShowDropdowns(false);
   };
 
+  /**
+   * Handles changes to the selected expiration date.
+   * 
+   * @param {SelectChangeEvent<string>} event - The select change event.
+   */
   const handleExpirationChange = (event: SelectChangeEvent<string>) => {
     setExpirationDate(event.target.value);
   };
 
+  /**
+   * Handles changes to the selected option type (calls or puts).
+   * 
+   * @param {SelectChangeEvent<string>} event - The select change event.
+   */
   const handleOptionTypeChange = (event: SelectChangeEvent<string>) => {
     setOptionType(event.target.value);
   };
 
+  /**
+   * Verifies the validity of the entered ticker by fetching market data.
+   */
   const verifyTicker = async () => {
     setLoading(true);
     try {
@@ -116,11 +143,15 @@ export default function Home() {
     setLoading(false);
   };
 
+  /**
+   * Calculates the time to expiration (T) in years based on the selected expiration date.
+   * 
+   * @param {string} expirationDate - The selected expiration date.
+   */
   const calculateT = (expirationDate: string) => {
-    const estZone = 'America/New_York'; // EST timezone
-    const currentTime = DateTime.now().setZone(estZone); // Convert current time to EST
+    const estZone = 'America/New_York';
+    const currentTime = DateTime.now().setZone(estZone);
 
-    // Parse expiration date and set time to 4:00 PM (close of market)
     const expirationTime = DateTime.fromISO(expirationDate, { zone: estZone }).set({
       hour: 16,
       minute: 0,
@@ -133,15 +164,17 @@ export default function Home() {
     setT(timeToExpiration);
   };
 
+  /**
+   * Fetches options prices based on the selected ticker and option type, then proceeds to page 2.
+   */
   const goToPage2 = async () => {
-    setLoadingPage2(true); // Start loading animation for Enter button
+    setLoadingPage2(true);
     try {
       const response = await fetch(`/api/options-prices?ticker=${ticker}&expirationDate=${expirationDate}&optionType=${optionType}`);
       const data = await response.json();
 
       calculateT(expirationDate);
 
-      // Transform the API response into the required quoteData format
       const parsedQuoteData: any = {};
       data.options.forEach((option: any) => {
         const { strike, bid, ask } = option;
@@ -155,9 +188,6 @@ export default function Home() {
     }
     setLoadingPage2(false);
     setCurrentPage(2);
-    setExpirationDate('');
-    setOptionType('calls');
-    setShowDropdowns(false);
   };
 
   return (
@@ -213,7 +243,6 @@ export default function Home() {
               )}
             </Box>
           </Box>
-
           <Box
             sx={{
               maxHeight: showDropdowns ? '500px' : '0',
@@ -245,7 +274,6 @@ export default function Home() {
                     ))}
                   </Select>
                 </FormControl>
-
                 <FormControl fullWidth margin="normal">
                   <InputLabel sx={{ color: 'white', '&.Mui-focused': { color: 'white' } }}>
                     Select Option Type
@@ -266,7 +294,7 @@ export default function Home() {
                   </Select>
                 </FormControl>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                  {loadingPage2 ? ( // Show CircularProgress when loading
+                  {loadingPage2 ? (
                     <CircularProgress sx={{ color: 'white', width: '35px', height: '35px' }} />
                   ) : (
                     <Button
@@ -289,11 +317,14 @@ export default function Home() {
           </Box>
         </Box>
       )}
-
       {currentPage === 2 && (
         <>
           <Button
-            onClick={() => setCurrentPage(1)}
+            onClick={() => {
+              setCurrentPage(1);
+              setExpirationDate('');
+              setOptionType('calls');
+            }}
             sx={{
               color: 'white',
               '&:hover': {
@@ -303,8 +334,16 @@ export default function Home() {
           >
             ← Back
           </Button>
-
-          <InteractiblePlot S={S} T={T} q={q} r={r} option_type={optionType} quoteData={quoteData} />
+          <InteractiblePlot
+            S={S}
+            T={T}
+            q={q}
+            r={r}
+            option_type={optionType}
+            expirationDate={expirationDate}
+            ticker={ticker}
+            quoteData={quoteData}
+          />
         </>
       )}
     </div>
