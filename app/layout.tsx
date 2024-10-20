@@ -9,8 +9,8 @@ const inter = Inter({ subsets: ["latin"] });
  * Metadata for the Next.js application, defining the title and description.
  */
 export const metadata: Metadata = {
-  title: "Quote Data Chart",
-  description: "A Next.js app displaying quote data in a chart",
+  title: "Hedge0-Splines",
+  description: "A personal app designed to display and interpolate live options data.",
 };
 
 /**
