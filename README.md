@@ -31,7 +31,11 @@ pnpm install
 bun install
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+The app will be available at [http://localhost:3000](http://localhost:3000) after running the development server. To start the development server, use the following command:
+
+```bash
+npm run dev
+```
 
 ## Usage
 
