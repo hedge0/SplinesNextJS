@@ -191,7 +191,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-[95vh] py-4" style={{ marginTop: '60px' }}>
+    <div className="flex flex-col items-center justify-start min-h-[95vh] py-4" style={{ marginTop: '20px' }}>
       {currentPage === 1 && (
         <Box
           className="bg-gray-700 rounded-lg shadow-lg p-6"
@@ -211,6 +211,11 @@ export default function Home() {
               placeholder={displayedText}
               value={ticker}
               onChange={handleTickerChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  verifyTicker();
+                }
+              }}
               error={!isValidTicker}
               helperText={!isValidTicker ? "Invalid ticker" : ""}
               autoComplete="off"
